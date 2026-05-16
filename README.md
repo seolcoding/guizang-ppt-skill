@@ -148,7 +148,7 @@ git clone https://github.com/op7418/guizang-ppt-skill.git ~/.claude/skills/guiza
 Skill 本身是结构化工作流,Agent 会逐步引导:
 
 1. **选择风格** — Style A 电子杂志风,或 Style B 瑞士国际主义
-2. **需求澄清** — 6 问清单:受众、时长、素材、图片、主题色、硬约束
+2. **需求澄清** — 7 问清单:风格、受众、时长、素材、图片/截图需求、主题色、硬约束
 3. **拷贝模板** — Style A 用 `assets/template.html`,Style B 用 `assets/template-swiss.html`
 4. **填充内容** — 先做主题节奏表,再从对应 layout 骨架里挑、粘、改文案
 5. **可选配图** — 在 Codex 中询问是否用 GPT-Image 2.0 / GPT-M 2.0 生成配图,再按页面比例插入
@@ -182,17 +182,18 @@ node scripts/validate-swiss-deck.mjs path/to/index.html
 
 - 人文纪实照片:富士 / 徕卡感的真实场景,增加人文表现力
 - 信息图 / 流程图 / 对比图 / 系统关系图:用于解释无法用实拍照片说明的概念
-- 截图再设计 / UI 情景图:把原始截图统一成适合 PPT 的比例和视觉密度
+- 截图美化 / 截图再设计:原始截图优先用内置背景资产做 CleanShot X 式背景画布适配;需要重构时再生成 UI 情景图
 - 数据大字报 / 数据图表:把关键数字做成可直接插入 PPT 的视觉素材
 - 多图拼贴:用于极宽图片槽位,避免把三张 16:9 图片硬塞进三列
 
-生成图片时要遵守三个关键规则:
+生成图片时要遵守四个关键规则:
 
 - 图片是 PPT 中的嵌入素材,不要自带页脚、页底、标题、角标、页码或装饰边框
 - 图片语言跟随 deck 语言:中文 deck 的信息图用中文标签,英文 deck 用英文标签
 - 图片比例必须先匹配落位:瑞士风主图常用 21:9,通用主图常用 16:9 / 16:10,截图再设计常用 16:10,多图网格统一高度
+- 用户截图需要保真时,先读 `references/screenshot-framing.md`,用 `assets/screenshot-backgrounds/` 内置背景 + 程序化缩放/留边/对齐处理,不要默认重画截图内容
 
-配图提示词见 [`references/image-prompts.md`](./references/image-prompts.md)。
+配图提示词见 [`references/image-prompts.md`](./references/image-prompts.md),截图适配见 [`references/screenshot-framing.md`](./references/screenshot-framing.md)。
 
 ## 封面生成
 
@@ -233,7 +234,8 @@ guizang-ppt-skill/
 ├── README.md             ← 本文件
 ├── assets/
 │   ├── template.html         ← Style A 电子杂志风模板
-│   └── template-swiss.html   ← Style B 瑞士国际主义模板
+│   ├── template-swiss.html   ← Style B 瑞士国际主义模板
+│   └── screenshot-backgrounds/ ← 截图美化内置背景(WebP):style-a 5 套 / style-b 4 套
 ├── scripts/
 │   └── validate-swiss-deck.mjs ← 瑞士风版式校验器
 └── references/

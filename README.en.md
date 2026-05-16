@@ -146,7 +146,7 @@ Once installed, Claude Code auto-detects the skill. Trigger phrases:
 The skill is a structured workflow; the agent walks you through each step:
 
 1. **Choose style** — Style A editorial magazine, or Style B Swiss International
-2. **Clarify intent** — 6-question checklist: audience, duration, source material, images, theme, hard constraints
+2. **Clarify intent** — 7-question checklist: style, audience, duration, source material, images/screenshots, theme, hard constraints
 3. **Copy template** — Style A uses `assets/template.html`; Style B uses `assets/template-swiss.html`
 4. **Fill content** — create a rhythm plan, then choose and adapt the matching layout skeletons
 5. **Optional image generation** — in Codex, ask whether to use GPT-Image 2.0 / GPT-M 2.0 images, then insert them at page-appropriate ratios
@@ -180,17 +180,18 @@ In Codex, after the first deck draft is ready, the agent can ask whether the use
 
 - Documentary photos: Fuji / Leica-like real-world scenes that add human texture
 - Infographics / flow diagrams / comparison charts / system maps: for concepts that cannot be explained well with photos
-- Screenshot redesigns / UI scenes: reshape raw screenshots into consistent slide-friendly ratios and visual density
+- Screenshot framing / screenshot redesigns: preserve raw screenshots with bundled background assets and a CleanShot X-style canvas first; use UI scene generation only when the screenshot needs reconstruction
 - Data posters / charts: turn key numbers into insert-ready visual assets
 - Multi-image compositions: useful for ultra-wide slots where three unrelated 16:9 images would break the grid
 
-Generated images must follow three core rules:
+Generated images must follow four core rules:
 
 - Treat the image as an embedded asset, not a standalone slide: no footer, page bottom, title, page number, corner mark, signature, or decorative border
 - Match the deck language: Chinese decks use Chinese labels inside infographics, English decks use English labels
 - Match the slot ratio before generation: 21:9 for many Swiss hero slots, 16:9 / 16:10 for common main visuals, 16:10 for UI scenes, fixed equal heights for image grids
+- When a raw screenshot must stay faithful, read `references/screenshot-framing.md` first and use bundled `assets/screenshot-backgrounds/` backgrounds plus programmatic scaling, padding, and alignment instead of redrawing the screenshot by default
 
-Image prompts live in [`references/image-prompts.md`](./references/image-prompts.md).
+Image prompts live in [`references/image-prompts.md`](./references/image-prompts.md). Screenshot framing lives in [`references/screenshot-framing.md`](./references/screenshot-framing.md).
 
 ## Cover Generation
 
@@ -232,7 +233,8 @@ guizang-ppt-skill/
 ├── README.en.md          ← this file
 ├── assets/
 │   ├── template.html         ← Style A editorial magazine template
-│   └── template-swiss.html   ← Style B Swiss template
+│   ├── template-swiss.html   ← Style B Swiss template
+│   └── screenshot-backgrounds/ ← bundled WebP screenshot backgrounds: 5 style-a / 4 style-b
 ├── scripts/
 │   └── validate-swiss-deck.mjs ← Swiss layout validator
 └── references/
