@@ -1,0 +1,269 @@
+openapi: "3.0.3"
+info:
+  title: Guizang PPT Conversion Service
+  description: |
+    External conversion server for guizang-ppt-skill.
+    Accepts a slide outline and returns a complete single-file HTML deck.
+
+    Replace `your-converter.example.com` with your actual deployed endpoint before
+    uploading this file to Copilot Studio.
+
+    Authentication: pass your service API key in the X-Api-Key header.
+    Use SERVICE_KEY_PLACEHOLDER as the key value in this file — never commit real keys.
+  version: "1.0.0"
+  contact:
+    name: guizang-ppt-skill (seolcoding fork)
+    url: https://github.com/seolcoding/guizang-ppt-skill
+
+servers:
+  - url: https://your-converter.example.com
+    description: Production conversion server (replace with real URL)
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /convert:
+    post:
+      operationId: convertDeck
+      summary: Generate a single-file HTML slide deck
+      description: |
+        Accepts a JSON body describing the deck topic, style, theme, and outline.
+        Returns the complete HTML as a string, along with a temporary preview URL
+        if the server is configured to host files.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConvertRequest"
+            example:
+              topic: "AI trends in smart home appliances"
+              style: "B"
+              theme: "ikb"
+              slide_count: 8
+              language: "en"
+              outline:
+                - title: "Cover"
+                  layout: "SWISS-COVER-ASCII"
+                  body: "AI × Smart Home 2026"
+                - title: "Why Now"
+                  layout: "S18"
+                  body: "Three macro forces driving adoption"
+                - title: "Market Data"
+                  layout: "S06"
+                  body: "KPI tower: TAM $420B, CAGR 18%, Penetration 34%"
+      responses:
+        "200":
+          description: HTML deck generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConvertResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid API key
+        "429":
+          description: Rate limit exceeded
+        "500":
+          description: Internal server error during generation
+
+  /render:
+    post:
+      operationId: renderSlide
+      summary: Render a single slide section to HTML
+      description: |
+        Accepts a layout ID and content, returns the HTML for one <section> slide.
+        Useful for iterative deck building where you generate one slide at a time
+        and assemble the final deck client-side.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RenderRequest"
+            example:
+              style: "A"
+              theme: "classic-ink"
+              layout: "4"
+              slide_class: "light"
+              content:
+                kicker: "Research Insight"
+                headline: "Teams that use AI tools ship 2× faster"
+                body: "Based on internal productivity data from 847 engineering teams, Q1 2026."
+                image_slot: "04-insight.jpg"
+      responses:
+        "200":
+          description: Single slide HTML generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RenderResponse"
+        "400":
+          description: Invalid request body
+        "401":
+          description: Missing or invalid API key
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: |
+        Use SERVICE_KEY_PLACEHOLDER as the value in this spec file.
+        Configure the real key in Copilot Studio's action authentication settings.
+
+  schemas:
+    ConvertRequest:
+      type: object
+      required:
+        - topic
+        - style
+      properties:
+        topic:
+          type: string
+          description: Main topic or title of the deck
+          maxLength: 200
+          example: "AI trends in smart home appliances"
+        style:
+          type: string
+          enum: ["A", "B"]
+          description: |
+            A = Editorial Magazine × Electronic Ink (serif, warm, narrative)
+            B = Swiss International Typographic Style (sans-serif, grid, single accent)
+        theme:
+          type: string
+          description: |
+            Style A themes: classic-ink | indigo-porcelain | forest-ink | kraft-paper | dune
+            Style B themes: ikb | lemon-yellow | lime-green | safety-orange
+          example: "ikb"
+        slide_count:
+          type: integer
+          minimum: 3
+          maximum: 30
+          default: 10
+          description: Target number of slides (approximate)
+        language:
+          type: string
+          enum: ["en", "zh", "ko"]
+          default: "en"
+          description: Primary language for generated text content
+        outline:
+          type: array
+          description: Optional pre-defined slide outline. If omitted, the server generates one from the topic.
+          items:
+            $ref: "#/components/schemas/SlideOutlineItem"
+
+    SlideOutlineItem:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Slide title or heading
+        layout:
+          type: string
+          description: |
+            Style A: 1-10 (layout number from layouts.md)
+            Style B: S01-S22, SWISS-COVER-ASCII, or SWISS-CLOSING-ASCII
+          example: "S18"
+        body:
+          type: string
+          description: Main body text, data points, or bullet points for this slide
+
+    ConvertRequest:
+      type: object
+      required:
+        - topic
+        - style
+      properties:
+        topic:
+          type: string
+          maxLength: 200
+        style:
+          type: string
+          enum: ["A", "B"]
+        theme:
+          type: string
+        slide_count:
+          type: integer
+          minimum: 3
+          maximum: 30
+          default: 10
+        language:
+          type: string
+          enum: ["en", "zh", "ko"]
+          default: "en"
+        outline:
+          type: array
+          items:
+            $ref: "#/components/schemas/SlideOutlineItem"
+
+    ConvertResponse:
+      type: object
+      properties:
+        html:
+          type: string
+          description: Complete single-file HTML deck content
+        preview_url:
+          type: string
+          format: uri
+          description: |
+            Temporary public URL where the rendered HTML is hosted for preview.
+            Only present if the server is configured with file hosting.
+            URL expires after 1 hour.
+          example: "https://your-converter.example.com/preview/abc123"
+        slide_count:
+          type: integer
+          description: Actual number of slides in the generated deck
+        style:
+          type: string
+          enum: ["A", "B"]
+        theme:
+          type: string
+
+    RenderRequest:
+      type: object
+      required:
+        - style
+        - layout
+      properties:
+        style:
+          type: string
+          enum: ["A", "B"]
+        theme:
+          type: string
+        layout:
+          type: string
+          description: Layout ID (e.g., "4" for Style A, "S08" for Style B)
+        slide_class:
+          type: string
+          enum: ["light", "dark", "hero light", "hero dark"]
+          default: "light"
+        content:
+          type: object
+          additionalProperties:
+            type: string
+          description: Key-value map of content slots (kicker, headline, body, image_slot, etc.)
+
+    RenderResponse:
+      type: object
+      properties:
+        html_fragment:
+          type: string
+          description: The <section class="slide ..."> HTML fragment for this single slide
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Machine-readable error code
